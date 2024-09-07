@@ -174,3 +174,14 @@ input[type="range"]::-moz-range-thumb {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 300ms;
 }
+
+/* Add these new styles for the selection feature */
+.selected-image {
+  border: 2px solid #3b82f6;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5);
+}
+
+.dark .selected-image {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.5);
+}

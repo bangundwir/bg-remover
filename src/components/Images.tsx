@@ -1,27 +1,179 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, Image } from "../db";
-import { FaTrash, FaCopy, FaDownload, FaTimes } from 'react-icons/fa';
+import { FaTrash, FaCopy, FaDownload, FaTimes, FaCheckCircle, FaToggleOn, FaToggleOff } from 'react-icons/fa';
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 
 export function Images() {
   const images = useLiveQuery(() => db.images.reverse().toArray());
   const [previewImage, setPreviewImage] = useState<Image | null>(null);
+  const [selectedImages, setSelectedImages] = useState<number[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStartIndex, setDragStartIndex] = useState<number | null>(null);
+  const [selectionEnabled, setSelectionEnabled] = useState(false);
 
   const processedCount = useMemo(() => {
     return images?.filter(img => img.processedFile instanceof File).length || 0;
   }, [images]);
 
+  const toggleSelectAll = () => {
+    if (selectedImages.length === images?.length) {
+      setSelectedImages([]);
+    } else {
+      setSelectedImages(images?.map(img => img.id).filter((id): id is number => id !== undefined) || []);
+    }
+  };
+
+  const deleteSelected = async () => {
+    await db.images.bulkDelete(selectedImages);
+    setSelectedImages([]);
+  };
+
+  const downloadSelected = async () => {
+    const selectedImagesData = await db.images
+      .where('id')
+      .anyOf(selectedImages)
+      .toArray();
+
+    const zip = new JSZip();
+
+    for (const image of selectedImagesData) {
+      if (image.processedFile instanceof File) {
+        zip.file(image.processedFile.name, image.processedFile);
+      }
+    }
+
+    const content = await zip.generateAsync({ type: "blob" });
+    saveAs(content, "selected_processed_images.zip");
+  };
+
+  const toggleSelectionFeature = () => {
+    setSelectionEnabled(!selectionEnabled);
+    if (!selectionEnabled) {
+      setSelectedImages([]);
+    }
+  };
+
+  const handleMouseDown = (index: number) => {
+    if (!selectionEnabled) return;
+    setIsDragging(true);
+    setDragStartIndex(index);
+    // Toggle selection of the first clicked image
+    const imageId = images?.[index].id;
+    if (imageId !== undefined) {
+      setSelectedImages(prev => 
+        prev.includes(imageId) 
+          ? prev.filter(id => id !== imageId)
+          : [...prev, imageId]
+      );
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setDragStartIndex(null);
+  };
+
+  const handleMouseEnter = (index: number) => {
+    if (!selectionEnabled) return;
+    if (isDragging && dragStartIndex !== null && images) {
+      const imageId = images[index].id;
+      if (imageId !== undefined) {
+        setSelectedImages(prev => {
+          const isStartSelected = prev.includes(images[dragStartIndex].id ?? -1);
+          if (isStartSelected) {
+            // If the start image was selected, add this image to selection
+            return Array.from(new Set([...prev, imageId]));
+          } else {
+            // If the start image was not selected, remove this image from selection
+            return prev.filter(id => id !== imageId);
+          }
+        });
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+      setDragStartIndex(null);
+    };
+
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => {
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, []);
+
   return (
     <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-lg shadow-lg">
-      <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800 dark:text-white">
-        Images: {images?.length} (Processed: {processedCount})
-      </h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white">
+          Images: {images?.length} (Processed: {processedCount}, Selected: {selectedImages.length})
+        </h2>
+        <div className="flex gap-2 items-center">
+          <button
+            onClick={toggleSelectionFeature}
+            className={`text-white px-3 py-1 rounded-full text-sm transition-colors ${
+              selectionEnabled ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-500 hover:bg-gray-600'
+            }`}
+          >
+            {selectionEnabled ? <FaToggleOn className="inline mr-2" /> : <FaToggleOff className="inline mr-2" />}
+            {selectionEnabled ? 'Disable Selection' : 'Enable Selection'}
+          </button>
+          {selectionEnabled && (
+            <>
+              <button
+                onClick={toggleSelectAll}
+                className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm hover:bg-blue-600 transition-colors"
+              >
+                {selectedImages.length === images?.length ? 'Deselect All' : 'Select All'}
+              </button>
+              <button
+                onClick={deleteSelected}
+                disabled={selectedImages.length === 0}
+                className="bg-red-500 text-white px-3 py-1 rounded-full text-sm hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Delete Selected ({selectedImages.length})
+              </button>
+              <button
+                onClick={downloadSelected}
+                disabled={selectedImages.length === 0}
+                className="bg-green-500 text-white px-3 py-1 rounded-full text-sm hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Download Selected ({selectedImages.length})
+              </button>
+            </>
+          )}
+        </div>
+      </div>
       <div className="gap-2 sm:gap-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        {images?.map((image) => {
+        {images?.map((image, index) => {
           if(image.file.type.includes("video")) {
             return <Video video={image} key={image.id} />;
           } else {
-            return <ImageSpot image={image} key={image.id} onPreview={() => setPreviewImage(image)} />;
+            return (
+              <ImageSpot
+                image={image}
+                key={image.id}
+                onPreview={() => setPreviewImage(image)}
+                isSelected={selectedImages.includes(image.id ?? -1)}
+                onToggleSelect={() => {
+                  if (selectionEnabled) {
+                    setSelectedImages(prev =>
+                      prev.includes(image.id ?? -1)
+                        ? prev.filter(id => id !== image.id)
+                        : [...prev, image.id ?? -1]
+                    );
+                  }
+                }}
+                onMouseDown={() => handleMouseDown(index)}
+                onMouseEnter={() => handleMouseEnter(index)}
+                onMouseUp={handleMouseUp}
+                selectionEnabled={selectionEnabled}
+              />
+            );
           }
         })}
       </div>
@@ -48,7 +200,16 @@ function Video({ video }: { video: Image }) {
   );
 }
 
-function ImageSpot({ image, onPreview }: { image: Image; onPreview: () => void }) {
+function ImageSpot({ image, onPreview, isSelected, onToggleSelect, onMouseDown, onMouseEnter, onMouseUp, selectionEnabled }: { 
+  image: Image; 
+  onPreview: () => void; 
+  isSelected: boolean; 
+  onToggleSelect: () => void;
+  onMouseDown: () => void;
+  onMouseEnter: () => void;
+  onMouseUp: () => void;
+  selectionEnabled: boolean;
+}) {
   const [isHovering, setIsHovering] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageProcessed = image.processedFile instanceof File;
@@ -77,9 +238,23 @@ function ImageSpot({ image, onPreview }: { image: Image; onPreview: () => void }
   return (
     <div 
       ref={containerRef}
-      className="aspect-square relative group rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer"
-      onClick={onPreview}
-      onMouseEnter={handleMouseEnter}
+      className={`aspect-square relative group rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer ${isSelected && selectionEnabled ? 'selected-image' : ''}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (selectionEnabled) {
+          onToggleSelect();
+        } else {
+          onPreview();
+        }
+      }}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        if (selectionEnabled) {
+          onMouseDown();
+        }
+      }}
+      onMouseEnter={onMouseEnter}
+      onMouseUp={onMouseUp}
       onMouseLeave={handleMouseLeave}
     >
       <img
@@ -132,6 +307,13 @@ function ImageSpot({ image, onPreview }: { image: Image; onPreview: () => void }
           </>
         )}
       </div>
+      {selectionEnabled && (
+        <div className="absolute top-2 left-2 z-10">
+          <div className={`w-6 h-6 rounded-full border-2 ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-white'} flex items-center justify-center`}>
+            {isSelected && <FaCheckCircle className="text-white" />}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
