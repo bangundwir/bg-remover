@@ -12,12 +12,22 @@ if (env.backends.onnx.wasm) {
   env.backends.onnx.wasm.proxy = false;
 }
 
-const model = await AutoModel.from_pretrained(model_id, {
-  device: "webgpu",
-});
-const processor = await AutoProcessor.from_pretrained(model_id);
+let model: any;
+let processor: any;
+
+async function initializeModelAndProcessor() {
+  model = await AutoModel.from_pretrained(model_id, {
+    device: "webgpu",
+  });
+  processor = await AutoProcessor.from_pretrained(model_id);
+}
+
+initializeModelAndProcessor();
 
 export async function processImage(image: File): Promise<File> {
+  if (!model || !processor) {
+    await initializeModelAndProcessor();
+  }
   const img = await RawImage.fromURL(URL.createObjectURL(image));
   // Pre-process image
   const { pixel_values } = await processor(img);
