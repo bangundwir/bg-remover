@@ -149,7 +149,10 @@ export function Images() {
           )}
         </div>
       </div>
-      <div className="gap-2 sm:gap-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      <motion.div 
+        className="gap-2 sm:gap-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+        layout
+      >
         {images?.map((image, index) => {
           if(image.file.type.includes("video")) {
             return <Video video={image} key={image.id} />;
@@ -177,7 +180,7 @@ export function Images() {
             );
           }
         })}
-      </div>
+      </motion.div>
       {previewImage && (
         <ImagePreview image={previewImage} onClose={() => setPreviewImage(null)} />
       )}
@@ -237,7 +240,7 @@ function ImageSpot({ image, onPreview, isSelected, onToggleSelect, onMouseDown, 
   const handleMouseLeave = () => setIsHovering(false);
 
   return (
-    <div 
+    <motion.div 
       ref={containerRef}
       className={`aspect-square relative group rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer image-hover ${isSelected && selectionEnabled ? 'selected-image' : ''}`}
       onClick={(e) => {
@@ -254,14 +257,22 @@ function ImageSpot({ image, onPreview, isSelected, onToggleSelect, onMouseDown, 
           onMouseDown();
         }
       }}
-      onMouseEnter={onMouseEnter}
+      onMouseEnter={() => {
+        setIsHovering(true);
+        onMouseEnter();
+      }}
+      onMouseLeave={() => setIsHovering(false)}
       onMouseUp={onMouseUp}
-      onMouseLeave={handleMouseLeave}
+      whileHover={{ scale: 1.05 }}
+      transition={{ type: "spring", stiffness: 300, damping: 10 }}
     >
-      <img
+      <motion.img
         className="w-full h-full object-cover"
         src={url}
         alt={image.file.name}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
       />
       {!imageProcessed && (
         <motion.div 
@@ -297,13 +308,23 @@ function ImageSpot({ image, onPreview, isSelected, onToggleSelect, onMouseDown, 
         />
       )}
       {isHovering && imageProcessed && (
-        <div className="absolute inset-x-0 bottom-4 flex justify-center items-center">
+        <motion.div 
+          className="absolute inset-x-0 bottom-4 flex justify-center items-center"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
           <div className="bg-black bg-opacity-50 text-white px-2 py-1 rounded-full text-sm">
             Hover to see original
           </div>
-        </div>
+        </motion.div>
       )}
-      <div className="controls absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 flex justify-end gap-2">
+      <motion.div 
+        className="controls absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 flex justify-end gap-2"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: isHovering ? 1 : 0, y: isHovering ? 0 : -10 }}
+        transition={{ duration: 0.3 }}
+      >
         <button 
           onClick={(e) => { e.stopPropagation(); db.images.delete(image.id); }} 
           className="bg-red-500 text-white p-2 rounded-full text-xs sm:text-sm hover:bg-red-600 transition-colors button-hover"
@@ -328,9 +349,14 @@ function ImageSpot({ image, onPreview, isSelected, onToggleSelect, onMouseDown, 
             </a>
           </>
         )}
-      </div>
+      </motion.div>
       {selectionEnabled && (
-        <div className="absolute top-2 left-2 z-10">
+        <motion.div 
+          className="absolute top-2 left-2 z-10"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        >
           <motion.div 
             className={`w-6 h-6 rounded-full border-2 ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-white'} flex items-center justify-center`}
             initial={{ scale: 0 }}
@@ -339,9 +365,9 @@ function ImageSpot({ image, onPreview, isSelected, onToggleSelect, onMouseDown, 
           >
             {isSelected && <FaCheckCircle className="text-white" />}
           </motion.div>
-        </div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
