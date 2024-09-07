@@ -8,21 +8,25 @@ import { db } from '../src/db';
 import * as Mp4Muxer from "mp4-muxer";
 
 const model_id = "Xenova/modnet";
-if (env.backends.onnx.wasm) {
+if (env.backends.onnx?.wasm) {
   env.backends.onnx.wasm.proxy = false;
 }
 
-let model: any;
-let processor: any;
+let model: any = null;
+let processor: any = null;
+let initializationPromise: Promise<void> | null = null;
 
-async function initializeModelAndProcessor() {
-  model = await AutoModel.from_pretrained(model_id, {
-    device: "webgpu",
-  });
-  processor = await AutoProcessor.from_pretrained(model_id);
+function initializeModelAndProcessor() {
+  if (!initializationPromise) {
+    initializationPromise = (async () => {
+      model = await AutoModel.from_pretrained(model_id, {
+        device: "webgpu",
+      });
+      processor = await AutoProcessor.from_pretrained(model_id);
+    })();
+  }
+  return initializationPromise;
 }
-
-initializeModelAndProcessor();
 
 export async function processImage(image: File): Promise<File> {
   if (!model || !processor) {
@@ -33,7 +37,6 @@ export async function processImage(image: File): Promise<File> {
   const { pixel_values } = await processor(img);
   // Predict alpha matte
   const { output } = await model({ input: pixel_values });
-
 
   const maskData = (
     await RawImage.fromTensor(output[0].mul(255).to("uint8")).resize(
@@ -78,8 +81,6 @@ export async function processImages() {
   }
   console.log("Processing images done");
 };
-
-
 
 // export async function processVideo() {
 
