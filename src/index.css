@@ -2,46 +2,76 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+  @apply bg-gradient-to-br from-blue-100 to-purple-100 text-gray-800;
+  min-height: 100vh;
+}
+
 .bg-checkered {
-  background-image: linear-gradient(45deg, #808080 25%, transparent 25%),
-    linear-gradient(-45deg, #808080 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #808080 75%),
-    linear-gradient(-45deg, transparent 75%, #808080 75%);
+  background-image: linear-gradient(45deg, #e2e8f0 25%, transparent 25%),
+    linear-gradient(-45deg, #e2e8f0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e2e8f0 75%),
+    linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
   background-size: 20px 20px;
   background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-  background-color: #fff;
+  background-color: #f7fafc;
 }
 
 .mask {
   mask-image: linear-gradient(to right, black 0%, black 100%);
   mask-size: 100%;
   mask-repeat: no-repeat;
-  transition: mask-size 0.2s;
-  transition-delay: 0.7s;
+  transition: mask-size 0.3s ease;
 }
 
 .mask:hover {
   mask-size: 0%;
-  transition-delay: 0s;
-  /* animation: mask 0.4s 1 ease-in-out; */
 }
 
-.mask.processing {
-  mask-size: 0%;
-  transition-delay: 0s;
-  border: 2px solid red;
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* @keyframes mask {
-  0% {
-    mask-size: 100%;
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
   }
-  100% {
-    mask-size: 0%;
+  50% {
+    opacity: 0.3;
   }
-} */
+}
 
-body {
-  /* #5200AE #4062BB gradient */
-  background: linear-gradient(135deg, #5200ae, #4062bb);
+.hover-zoom {
+  @apply transition-transform duration-300 ease-in-out;
+}
+
+.hover-zoom:hover {
+  @apply transform scale-105;
+}
+
+/* Add these new styles */
+.rounded-lg {
+  @apply overflow-hidden;
+}
+
+.shadow-lg {
+  @apply shadow-xl;
+}
+
+button, a.bg-green-500 {
+  @apply transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-100;
+}
+
+.text-gray-800, .text-gray-600, .text-gray-500 {
+  @apply antialiased;
+}
+
+/* Add this new style for image containers */
+.image-container {
+  @apply relative pb-[100%] overflow-hidden;
+}
+
+.image-container img,
+.image-container video {
+  @apply absolute inset-0 w-full h-full object-contain;
 }
