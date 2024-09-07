@@ -82,21 +82,22 @@ function ImageSpot({ image, onPreview }: { image: Image; onPreview: () => void }
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {imageProcessed ? (
-        <>
-          <img
-            className="w-full h-full object-cover bg-checkered"
-            src={processedURL}
-            alt="Processed"
-          />
-          <img
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isHovering ? 'opacity-100' : 'opacity-0'}`}
-            src={url}
-            alt={image.file.name}
-          />
-        </>
-      ) : (
-        <div className="w-full h-full bg-gray-200 animate-pulse"></div>
+      <img
+        className="w-full h-full object-cover"
+        src={url}
+        alt={image.file.name}
+      />
+      {!imageProcessed && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
+      {imageProcessed && (
+        <img
+          className={`absolute inset-0 w-full h-full object-cover bg-checkered transition-opacity duration-300 ${isHovering ? 'opacity-0' : 'opacity-100'}`}
+          src={processedURL}
+          alt="Processed"
+        />
       )}
       {isHovering && imageProcessed && (
         <div className="absolute inset-x-0 bottom-4 flex justify-center items-center">
@@ -122,7 +123,7 @@ function ImageSpot({ image, onPreview }: { image: Image; onPreview: () => void }
             </button>
             <a 
               href={processedURL} 
-              download={image.processedFile?.name} 
+              download={image.processedFile instanceof File ? image.processedFile.name : undefined} 
               className="bg-green-500 text-white p-2 rounded-full text-xs sm:text-sm hover:bg-green-600 transition-colors flex items-center justify-center" 
               onClick={(e) => e.stopPropagation()}
             >
@@ -184,7 +185,7 @@ function ImagePreview({ image, onClose }: { image: Image; onClose: () => void })
               <button onClick={copyImage} className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-colors text-sm sm:text-base font-semibold flex items-center">
                 <FaCopy className="mr-2" /> Copy to Clipboard
               </button>
-              <a href={processedURL} download={image.processedFile?.name} className="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600 transition-colors text-sm sm:text-base font-semibold flex items-center">
+              <a href={processedURL} download={image.processedFile instanceof File ? image.processedFile.name : undefined} className="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-600 transition-colors text-sm sm:text-base font-semibold flex items-center">
                 <FaDownload className="mr-2" /> Download Processed Image
               </a>
             </>

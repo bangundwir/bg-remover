@@ -19,6 +19,4 @@ db.version(1).stores({
   images: '++id, file, processedFile' // primary key "id" (for the runtime!)
 });
 
-
-export type { Image };
 export { db };
