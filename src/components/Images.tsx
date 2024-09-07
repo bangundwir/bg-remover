@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db, Image } from "../db";
-import { FaTrash, FaCopy, FaDownload, FaTimes, FaCheckCircle, FaToggleOn, FaToggleOff } from 'react-icons/fa';
+import { FaTrash, FaCopy, FaDownload, FaTimes, FaCheckCircle, FaToggleOn, FaToggleOff, FaSpinner } from 'react-icons/fa';
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+import { motion } from "framer-motion";
 
 export function Images() {
   const images = useLiveQuery(() => db.images.reverse().toArray());
@@ -238,7 +239,7 @@ function ImageSpot({ image, onPreview, isSelected, onToggleSelect, onMouseDown, 
   return (
     <div 
       ref={containerRef}
-      className={`aspect-square relative group rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer ${isSelected && selectionEnabled ? 'selected-image' : ''}`}
+      className={`aspect-square relative group rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer image-hover ${isSelected && selectionEnabled ? 'selected-image' : ''}`}
       onClick={(e) => {
         e.stopPropagation();
         if (selectionEnabled) {
@@ -263,15 +264,36 @@ function ImageSpot({ image, onPreview, isSelected, onToggleSelect, onMouseDown, 
         alt={image.file.name}
       />
       {!imageProcessed && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-        </div>
+        <motion.div 
+          className="absolute inset-0 overflow-hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="absolute inset-0 bg-black bg-opacity-50 dark:bg-opacity-70" />
+          <motion.div
+            className="absolute inset-0 matrix-scan"
+            initial={{ y: "-100%" }}
+            animate={{ y: "100%" }}
+            transition={{
+              repeat: Infinity,
+              duration: 2,
+              ease: "linear"
+            }}
+          />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-green-400 dark:text-green-300 font-mono text-lg">Processing...</div>
+          </div>
+        </motion.div>
       )}
       {imageProcessed && (
-        <img
-          className={`absolute inset-0 w-full h-full object-cover bg-checkered transition-opacity duration-300 ${isHovering ? 'opacity-0' : 'opacity-100'}`}
+        <motion.img
+          className={`absolute inset-0 w-full h-full object-cover bg-checkered`}
           src={processedURL}
           alt="Processed"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isHovering ? 0 : 1 }}
+          transition={{ duration: 0.3 }}
         />
       )}
       {isHovering && imageProcessed && (
@@ -281,10 +303,10 @@ function ImageSpot({ image, onPreview, isSelected, onToggleSelect, onMouseDown, 
           </div>
         </div>
       )}
-      <div className="controls absolute top-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 flex justify-center gap-2">
+      <div className="controls absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 flex justify-end gap-2">
         <button 
           onClick={(e) => { e.stopPropagation(); db.images.delete(image.id); }} 
-          className="bg-red-500 text-white p-2 rounded-full text-xs sm:text-sm hover:bg-red-600 transition-colors"
+          className="bg-red-500 text-white p-2 rounded-full text-xs sm:text-sm hover:bg-red-600 transition-colors button-hover"
         >
           <FaTrash />
         </button>
@@ -292,14 +314,14 @@ function ImageSpot({ image, onPreview, isSelected, onToggleSelect, onMouseDown, 
           <>
             <button 
               onClick={copyImage} 
-              className="bg-blue-500 text-white p-2 rounded-full text-xs sm:text-sm hover:bg-blue-600 transition-colors"
+              className="bg-blue-500 text-white p-2 rounded-full text-xs sm:text-sm hover:bg-blue-600 transition-colors button-hover"
             >
               <FaCopy />
             </button>
             <a 
               href={processedURL} 
               download={image.processedFile instanceof File ? image.processedFile.name : undefined} 
-              className="bg-green-500 text-white p-2 rounded-full text-xs sm:text-sm hover:bg-green-600 transition-colors flex items-center justify-center" 
+              className="bg-green-500 text-white p-2 rounded-full text-xs sm:text-sm hover:bg-green-600 transition-colors flex items-center justify-center button-hover" 
               onClick={(e) => e.stopPropagation()}
             >
               <FaDownload />
@@ -309,9 +331,14 @@ function ImageSpot({ image, onPreview, isSelected, onToggleSelect, onMouseDown, 
       </div>
       {selectionEnabled && (
         <div className="absolute top-2 left-2 z-10">
-          <div className={`w-6 h-6 rounded-full border-2 ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-white'} flex items-center justify-center`}>
+          <motion.div 
+            className={`w-6 h-6 rounded-full border-2 ${isSelected ? 'bg-blue-500 border-blue-500' : 'border-white'} flex items-center justify-center`}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          >
             {isSelected && <FaCheckCircle className="text-white" />}
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

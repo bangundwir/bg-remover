@@ -185,3 +185,74 @@ input[type="range"]::-moz-range-thumb {
   border-color: #60a5fa;
   box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.5);
 }
+
+/* Add these new styles for the animations */
+@keyframes scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.scan-animation {
+  animation: scan 2s linear infinite;
+}
+
+/* Improve the skeleton loading animation */
+@keyframes skeleton-loading {
+  0% {
+    background-color: rgba(0, 255, 0, 0.1);
+  }
+  100% {
+    background-color: rgba(0, 255, 0, 0.3);
+  }
+}
+
+.skeleton {
+  animation: skeleton-loading 1s linear infinite alternate;
+}
+
+.dark .skeleton {
+  animation: skeleton-loading-dark 1s linear infinite alternate;
+}
+
+@keyframes skeleton-loading-dark {
+  0% {
+    background-color: rgba(0, 255, 0, 0.2);
+  }
+  100% {
+    background-color: rgba(0, 255, 0, 0.4);
+  }
+}
+
+/* ... (rest of the existing styles) */
+
+/* Matrix-like scanning effect */
+@keyframes matrix-scan {
+  0% {
+    background-position: 0% -100%;
+  }
+  100% {
+    background-position: 0% 100%;
+  }
+}
+
+.matrix-scan {
+  background-image: 
+    linear-gradient(0deg, rgba(0, 255, 0, 0.2) 25%, transparent 25%),
+    linear-gradient(0deg, rgba(0, 255, 0, 0.2) 50%, transparent 50%),
+    linear-gradient(0deg, rgba(0, 255, 0, 0.2) 75%, transparent 75%);
+  background-size: 100% 4px, 100% 4px, 100% 4px;
+  animation: matrix-scan 2s linear infinite;
+}
+
+.dark .matrix-scan {
+  background-image: 
+    linear-gradient(0deg, rgba(0, 255, 0, 0.3) 25%, transparent 25%),
+    linear-gradient(0deg, rgba(0, 255, 0, 0.3) 50%, transparent 50%),
+    linear-gradient(0deg, rgba(0, 255, 0, 0.3) 75%, transparent 75%);
+}
+
+/* ... (rest of the existing styles) */
