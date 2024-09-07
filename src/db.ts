@@ -1,10 +1,10 @@
 // db.ts
 import Dexie, { type EntityTable } from 'dexie';
 
-interface Image {
-  id: number;
+export interface Image {
+  id?: number;
   file: File;
-  processedFile?: File;
+  processedFile: File | "null";
 }
 
 const db = new Dexie('BackgroundRemoverDb') as Dexie & {

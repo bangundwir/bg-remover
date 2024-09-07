@@ -2,76 +2,175 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-gradient-to-br from-blue-100 to-purple-100 text-gray-800;
-  min-height: 100vh;
+:root {
+  --bg-gradient-light-from: #EBF4FF;
+  --bg-gradient-light-to: #E9D5FF;
+  --bg-gradient-dark-from: #1F2937;
+  --bg-gradient-dark-to: #111827;
 }
+
+body {
+  @apply bg-gradient-to-br text-gray-800 dark:text-white;
+  min-height: 100vh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dark body {
+  @apply from-gray-800 to-gray-900;
+}
+
+/* ... existing styles ... */
+
+/* Dark mode styles */
+.dark .bg-white {
+  @apply bg-gray-800;
+}
+
+.dark .text-gray-800 {
+  @apply text-white;
+}
+
+.dark .text-gray-600 {
+  @apply text-gray-300;
+}
+
+.dark .text-gray-500 {
+  @apply text-gray-400;
+}
+
+.dark .bg-checkered {
+  background-image: linear-gradient(45deg, #374151 25%, transparent 25%),
+    linear-gradient(-45deg, #374151 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #374151 75%),
+    linear-gradient(-45deg, transparent 75%, #374151 75%);
+  background-color: #1F2937;
+}
+
+/* ... rest of the existing styles ... */
+
+/* Transition for dark mode */
+.transition-colors {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* Icon styles */
+.icon {
+  @apply inline-block align-text-bottom;
+}
+
+/* ... rest of the file ... */
+
+/* Add this to your existing styles */
+@media (hover: none) {
+  .group:active .group-hover\:opacity-0 {
+    opacity: 0;
+  }
+  
+  .group:active .group-hover\:opacity-100 {
+    opacity: 1;
+  }
+}
+
+/* Add these new styles for the image transition */
+.group:hover .group-hover\:opacity-0 {
+  opacity: 0;
+}
+
+.transition-opacity {
+  transition-property: opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* Improve animation performance */
+.group:hover .group-hover\:opacity-0,
+.group:hover .group-hover\:opacity-100 {
+  will-change: opacity;
+}
+
+/* Add these styles at the end of the file */
+
+/* Slider styles */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.6);
+  outline: none;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.2);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  border: 2px solid #3b82f6;
+  box-shadow: -407px 0 0 400px #3b82f6;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  border: 2px solid #3b82f6;
+  box-shadow: -407px 0 0 400px #3b82f6;
+}
+
+/* Dark mode slider styles */
+.dark input[type="range"] {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.dark input[type="range"]::-webkit-slider-thumb {
+  background: #1f2937;
+  border-color: #60a5fa;
+  box-shadow: -407px 0 0 400px #60a5fa;
+}
+
+.dark input[type="range"]::-moz-range-thumb {
+  background: #1f2937;
+  border-color: #60a5fa;
+  box-shadow: -407px 0 0 400px #60a5fa;
+}
+
+/* Add these styles at the end of the file */
 
 .bg-checkered {
-  background-image: linear-gradient(45deg, #e2e8f0 25%, transparent 25%),
-    linear-gradient(-45deg, #e2e8f0 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #e2e8f0 75%),
-    linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
+  background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+    linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+    linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
   background-size: 20px 20px;
   background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-  background-color: #f7fafc;
 }
 
-.mask {
-  mask-image: linear-gradient(to right, black 0%, black 100%);
-  mask-size: 100%;
-  mask-repeat: no-repeat;
-  transition: mask-size 0.3s ease;
+.dark .bg-checkered {
+  background-image: linear-gradient(45deg, #374151 25%, transparent 25%),
+    linear-gradient(-45deg, #374151 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #374151 75%),
+    linear-gradient(-45deg, transparent 75%, #374151 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
 }
 
-.mask:hover {
-  mask-size: 0%;
+/* Improve animation performance */
+.group:hover .group-hover\:opacity-0,
+.group:hover .group-hover\:opacity-100 {
+  will-change: opacity;
 }
 
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 0.3;
-  }
-}
-
-.hover-zoom {
-  @apply transition-transform duration-300 ease-in-out;
-}
-
-.hover-zoom:hover {
-  @apply transform scale-105;
-}
-
-/* Add these new styles */
-.rounded-lg {
-  @apply overflow-hidden;
-}
-
-.shadow-lg {
-  @apply shadow-xl;
-}
-
-button, a.bg-green-500 {
-  @apply transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-blue-100;
-}
-
-.text-gray-800, .text-gray-600, .text-gray-500 {
-  @apply antialiased;
-}
-
-/* Add this new style for image containers */
-.image-container {
-  @apply relative pb-[100%] overflow-hidden;
-}
-
-.image-container img,
-.image-container video {
-  @apply absolute inset-0 w-full h-full object-contain;
+/* Smooth transition for comparison slider */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
 }
